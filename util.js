@@ -890,6 +890,10 @@ export class UtilNative {
   /**
    * Comprueba si un valor corresponde a un tipo definido.
    *
+   * ❗Aunque puede comparar valores primitivos (y objetos), su eso es
+   * mas enfocado para arrays❗
+   *
+   *
    * los tipos son:
    *
    * ````javascript
@@ -905,83 +909,60 @@ export class UtilNative {
    * "function"
    * ````
    *
-   * ⚠ Importante: Aunque permite comprobar tipos primitivos,
-   * su uso esta mas pensado para objeto y especificamente
-   * arrays y sus elementos.
-   *
-   * ⚠ Solo puede comprobar los elementos de un array maximo
-   *  hasta un nivel 2 de profundidad.
-   *
-   * ⚠ no puede comprobar el tipo de propiedades .
-   *
-   * - Caso primitivos (incluye string):
-   * Comparación sencilla de valores.
-   *
-   * Ejemplo comprobar primitivo:
-   * ```typescript
-   * const value = 3;
-   * const r = testType(value, "is", "string");
-   * console.log(r); //-> false, porque `3` es un `"number"` no un `"string"`
-   * ```
-   *
-   * Ejemplo comprobar primitivo de múltiples tipos:
-   * ```typescript
-   * const value = 3;
-   * const r = testType(value, "is", ["string", "number"]);
-   * console.log(r); //-> true, porque `3` es un `"number"`
-   * ```
-   *
-   * - Caso Objetos (no incluye array):
-   * Comprueba si corresponde a un objeto (sin el legendario bug de `null`).
-   *
-   * **⚠** Comprobación a un nivel de profundidad.
-   *
-   * Ejemplo comprobar objeto:
-   * ```typescript
-   * const value = [];
-   * const r = testType(value, "is", "object", "allow-empty");
-   * console.log(r); //-> false, porque `[]` es un `"array"`, no un objeto literal
-   * ```
-   *
-   * Ejemplo comprobar objeto vacío:
-   * ```typescript
-   * const value = {};
-   * const r = testType(value, "is", "object", "deny-empty");
-   * console.log(r); //-> false, porque es un objeto vacío
-   * ```
-   *
-   * - Caso Arrays:
-   * Comprueba el tipo array y con la opción de comprobar sus elementos.
-   *
-   * **⚠** Importante: Puede comprobar n niveles `[[[[[[[[]]]]]]]]` de profundidad en busca de un elemento que corresponda al subtipo, usar con **precaución**.
-   *
-   * Ejemplo comprobar no array y vacío denegado:
-   * ```typescript
-   * const value = [];
-   * const r = testType(value, "is-not", "array", "deny-empty");
-   * console.log(r); //-> true, porque `[]` es un `"array"`, pero se deniega que esté vacío, esta lógica negativa hace que sea *is not array*, por lo tanto es `true`
-   * ```
-   *
-   * ➡ Ejemplo comprobar de tipos en cada elemento:
-   * ```typescript
-   * const value = [{p1:1}, "hola", true];
-   * const r = testType(value, "is", "array", "deny-empty", "string");
-   * console.log(r); //-> false, porque `value` es un `"array"` pero solo uno de sus elementos es de tipo `"string"`
-   * ```
-   *
-   * ➡ Ejemplo comprobar de tipos múltiples en cada elemento:
-   * ```typescript
-   * const value = [{p1:1}, "hola", true];
-   * const r = testType(value, "is", "array", "deny-empty", ["string", "boolean", "object"]);
-   * console.log(r); //-> true, porque `value` es un `array` y sus elementos corresponden a los tipos especificados
-   * ```
-   *
    * @param {any} anyValue - Valor a comprobar el tipo.
    * @param {"is" | "is-not"} condition - `"is"`  Determina si corresponde al tipo o a uno de los tipos, `"is-not"` determina que no es ninguno de los tipos.
    * @param {Array<"string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "null" | "object" | "array" | "function">} types - Los tipos a comprobar.
    * @param {"allow-empty" | "deny-empty"} [emptyMode = "allow-empty"] - Solo se aplica a valores estructurados (objetos o arrays), determina si se consideran los objetos o arrays vacíos. Para el caso de la condición `"is"`, es lógica positiva mientras que para la condición `"is-not"`, la configuración `"deny-empty"` indicaría que un valor como `[]` no corresponde a un array válido.
    * @param {Array<"string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "null" | "object" | "array" | "function">} subTypes - (Opcional y solo para estructuras objeto o arrays) Determina qué subtipos debe comprobar en cada elemento (para los arrays) o cada propiedad (para los objetos).
    * @returns {boolean} - Retorna un booleano indicando si corresponde al tipo y sus características.
+   *
+   * @example
+   *
+   * ````typescript
+   * let v;
+   * let r;
+   *
+   * //primitivos basicos
+   * v = 2;
+   * r = isValueType(v, "is-not", "number");
+   * console.log(r); //Salida: false (por que numero)
+   *
+   * //primitivos basicos (string-number)
+   * v = "2";
+   * r = isValueType(v, "is", "number");
+   * console.log(r); //Salida: false (por que es un string, antes que un numero)
+   *
+   * //primitivos basicos (varios tipos)
+   * v = "hola";
+   * r = isValueType(v, "is", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (por que es string)
+   *
+   * //objetos
+   * v = {id:1, name: "juan"};
+   * r = isValueType(v, "is", ["boolean", "number", "string"]); //funciona como OR
+   * console.log(r); //Salida: false
+   *
+   * //array (de numeros)
+   * v = [1, 2];
+   * r = isValueType(v, "is", "array", "allow-empty", ["boolean", "string"]); //funciona como OR
+   * console.log(r); //Salida: false (es un array de numbers)
+   *
+   * //array (vacio)
+   * v = [];
+   * r = isValueType(v, "is", "array", "allow-empty", ["boolean", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (se permite vacio)
+   *
+   * //array (varios tipos)
+   * v = [1, "hola"];
+   * r = isValueType(v, "is", "array", "allow-empty", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (es un arryay de numeros o strings)
+   *
+   * //array (varios tipos (2))
+   * v = [1, "hola", false];
+   * r = isValueType(v, "is", "array", "allow-empty", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: false (uno o mas de los elementos no es number o string)
+   *
+   * ````
    */
   isValueType(anyValue, condition, types, emptyMode = "allow-empty", subTypes) {
     if (!this.isString(condition))
