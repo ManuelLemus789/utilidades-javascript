@@ -831,9 +831,7 @@ export class UtilNative {
     if (value === null) return null;
     //caso objetos o arrays
     isDeep = this.anyToBoolean(isDeep);
-    let newObjOrArray = !Array.isArray(value)
-      ? Object.assign({}, value)
-      : [...value]; //clonacion superficial array
+    let newObjOrArray = !Array.isArray(value) ? { ...value } : [...value]; //clonacion superficial array
     Object.keys(newObjOrArray).forEach((key) => {
       if (newObjOrArray[key] === undefined) {
         newObjOrArray[key] = null;
@@ -872,9 +870,7 @@ export class UtilNative {
       return value === null ? undefined : value;
     //caso objetos o arrays
     isDeep = this.anyToBoolean(isDeep);
-    let newObjOrArray = !Array.isArray(value)
-      ? Object.assign({}, value)
-      : [...value]; //clonacion superficial array
+    let newObjOrArray = !Array.isArray(value) ? { ...value } : [...value]; //clonacion superficial array
     Object.keys(newObjOrArray).forEach((key) => {
       if (newObjOrArray[key] === null) {
         newObjOrArray[key] = undefined;
@@ -2470,20 +2466,17 @@ export class UtilNative {
   }
   /**... */
   anyCompareTo(compareValues, config) {
-    const isEquivalent = this.isEquivalentTo(
-      compareValues,
-      Object.assign({}, config)
-    );
+    const isEquivalent = this.isEquivalentTo(compareValues, { ...config });
     if (isEquivalent) return 0;
-    const isGreater = this.isGreaterTo(
-      compareValues,
-      Object.assign(Object.assign({}, config), { isAllowEquivalent: true })
-    );
+    const isGreater = this.isGreaterTo(compareValues, {
+      ...config,
+      isAllowEquivalent: true, //❗Obligatorio true
+    });
     if (isGreater) return 1;
-    const isLesser = this.isLesserTo(
-      compareValues,
-      Object.assign(Object.assign({}, config), { isAllowEquivalent: true })
-    );
+    const isLesser = this.isLesserTo(compareValues, {
+      ...config,
+      isAllowEquivalent: true, //❗Obligatorio true
+    });
     if (isLesser) return -1;
     throw new Error(`Internal Errror in anyCompareTo() method`);
   }
