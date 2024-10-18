@@ -1,3 +1,4 @@
+import Util_Node from "util";
 /**Clase de utilidades */
 export class UtilNative {
   /**Utilidades implicitas en Node JS*/
