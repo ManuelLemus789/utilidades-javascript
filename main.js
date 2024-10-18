@@ -1,4 +1,4 @@
 import { UtilNative } from "./util.js";
-const c = new UtilNative();
-console.log(c.isNumber(2));
-console.log(c.isEquivalentTo([2, 2], {}));
+const util = UtilNative.getInstance(undefined);
+console.log(util.isNumber(2));
+console.log(util.isEquivalentTo([2, 2], {}));
